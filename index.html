@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>NVIDIA (NVDA) Dashboard · © 2026 Hugo Tian</title><meta name="author" content="Hugo Tian"><meta name="copyright" content="© 2026 Hugo Tian. All rights reserved.">
-<meta name="color-scheme" content="light dark"><link rel="icon" type="image/png" href="favicon.png?v=1791870371"><link rel="apple-touch-icon" href="icon-180.png?v=1791870371">
+<meta name="color-scheme" content="light dark"><link rel="icon" type="image/png" href="favicon.png?v=1791870507"><link rel="apple-touch-icon" href="icon-180.png?v=1791870507">
 <script>(function(){var d=document.documentElement,l=null;try{l=localStorage.getItem('nvda-lang')}catch(e){}if(l!=='zh'&&l!=='en')l=/^zh/i.test(navigator.language||'')?'zh':'en';d.dataset.lang=l;d.lang=l==='zh'?'zh-CN':'en';
 var t=null;try{t=localStorage.getItem('nvda-theme')}catch(e){}if(t==='light'||t==='dark')d.dataset.theme=t})();</script>
-<script src="data.js?v=1791870371"></script><script src="board.js?v=1791870371"></script>
+<script src="data.js?v=1791870507"></script><script src="board.js?v=1791870507"></script>
 <style>
 :root{--font:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Helvetica,Arial,"PingFang SC","Noto Sans CJK SC","Microsoft YaHei",sans-serif;--bg:#f5f5f7;--panel:#fff;--line:rgba(0,0,0,.06);--txt:#1d1d1f;--mut:#6e6e73;--acc:#5e9400;--accsoft:rgba(118,185,0,.12);--glass:rgba(251,251,253,.8)}
 @media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#000;--panel:#161617;--line:rgba(255,255,255,.08);--txt:#f5f5f7;--mut:#a1a1a6;--acc:#76b900;--accsoft:rgba(118,185,0,.16);--glass:rgba(22,22,23,.8)}}
@@ -28,7 +28,7 @@ th{font-size:12px;color:var(--mut);font-weight:500}tr:last-child td{border:0}th:
 footer{max-width:1100px;margin:0 auto;padding:24px;color:var(--mut);font-size:12px;border-top:1px solid var(--line)}
 html[data-lang=en] [data-zh-only],html[data-lang=zh] [data-en-only]{display:none}
 </style></head><body>
-<header><div class="bar"><a class="brand" href="#price"><img src="seal.png?v=1791870371" alt="">NVIDIA <span style="color:var(--mut);font-weight:500">NVDA</span></a>
+<header><div class="bar"><a class="brand" href="#price"><img src="seal.png?v=1791870507" alt="">NVIDIA <span style="color:var(--mut);font-weight:500">NVDA</span></a>
 <nav><a href="#price" data-k="price"></a><a href="#fin" data-k="fin"></a><a href="#ins" data-k="ins"></a></nav>
 <button class="btn" id="lang"><span class="lopt" data-l="en"><img src="flag-us.svg" alt="">EN</span>/<span class="lopt" data-l="zh"><img src="flag-cn.svg" alt="">中文</span></button>
 <button class="btn" id="theme">◐</button></div></header>
@@ -73,8 +73,8 @@ bt.innerHTML=`<tr><th>${t('name')}</th><th class="l">${t('role')}</th><th class=
 et.innerHTML=`<tr><th>${t('name')}</th><th class="l">${t('role')}</th><th>${t('sh')}</th><th>${t('pct')}</th><th>${t('fil')}</th></tr>`+B.execs.map(p=>`<tr><td>${p.name}</td><td class="l">${t(p.role)}</td>${sh(p)}</tr>`).join('');
 document.getElementById('in').innerHTML=t('inn')().map(x=>`<li>${x}</li>`).join('');tv()}
 let tvk='';function tv(){const dark=document.documentElement.dataset.theme==='dark'||(!document.documentElement.dataset.theme&&matchMedia('(prefers-color-scheme: dark)').matches),k=L+dark;if(k===tvk)return;tvk=k;
-const box=document.getElementById('tv');box.innerHTML='<div class="tradingview-widget-container__widget" style="height:100%"></div>';const s=document.createElement('script');s.src='https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';s.async=true;
-s.innerHTML=JSON.stringify({symbol:'NASDAQ:NVDA',interval:'D',autosize:true,theme:dark?'dark':'light',style:'1',locale:L==='zh'?'zh_CN':'en',hide_side_toolbar:true,allow_symbol_change:false,timezone:'Asia/Singapore',backgroundColor:dark?'#161617':'#ffffff'});box.appendChild(s)}
+const el=document.getElementById('tv');el.innerHTML='<div class="tradingview-widget-container" style="height:100%"><div class="tradingview-widget-container__widget" style="height:100%"></div></div>';const box=el.firstChild,s=document.createElement('script');s.type='text/javascript';s.src='https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';s.async=true;
+s.textContent=JSON.stringify({symbol:'NASDAQ:NVDA',interval:'D',autosize:true,theme:dark?'dark':'light',style:'1',locale:L==='zh'?'zh_CN':'en',hide_side_toolbar:true,allow_symbol_change:false,timezone:'Asia/Singapore',backgroundColor:dark?'#161617':'#ffffff'});box.appendChild(s)}
 function route(){const h=(location.hash||'#price').slice(1),id=['price','fin','ins'].includes(h)?h:'price';document.querySelectorAll('section').forEach(s=>s.classList.toggle('on',s.id===id));document.querySelectorAll('nav a').forEach(a=>a.classList.toggle('on',a.dataset.k===id))}
 lang.onclick=()=>{L=L==='en'?'zh':'en';document.documentElement.dataset.lang=L;document.documentElement.lang=L==='zh'?'zh-CN':'en';try{localStorage.setItem('nvda-lang',L)}catch(e){}render()};
 theme.onclick=()=>{const d=document.documentElement,cur=d.dataset.theme||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');d.dataset.theme=cur==='dark'?'light':'dark';try{localStorage.setItem('nvda-theme',d.dataset.theme)}catch(e){}tv()};
