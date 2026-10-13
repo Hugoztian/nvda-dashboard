@@ -1,82 +1,48 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>NVIDIA (NVDA) Dashboard · © 2026 Hugo Tian</title><meta name="author" content="Hugo Tian"><meta name="copyright" content="© 2026 Hugo Tian. All rights reserved.">
-<meta name="color-scheme" content="light dark"><link rel="icon" type="image/png" href="favicon.png?v=1791870507"><link rel="apple-touch-icon" href="icon-180.png?v=1791870507">
+<meta name="description" content="NVIDIA (NASDAQ: NVDA) investor dashboard: live price, financials, market platforms, capital returns, guidance, insiders, Wall Street, competition, valuation and SEC feed.">
+<meta name="color-scheme" content="light dark"><link rel="icon" type="image/png" href="favicon.png?v=1791872362"><link rel="apple-touch-icon" href="icon-180.png?v=1791872362">
 <script>(function(){var d=document.documentElement,l=null;try{l=localStorage.getItem('nvda-lang')}catch(e){}if(l!=='zh'&&l!=='en')l=/^zh/i.test(navigator.language||'')?'zh':'en';d.dataset.lang=l;d.lang=l==='zh'?'zh-CN':'en';
 var t=null;try{t=localStorage.getItem('nvda-theme')}catch(e){}if(t==='light'||t==='dark')d.dataset.theme=t})();</script>
-<script src="data.js?v=1791870507"></script><script src="board.js?v=1791870507"></script>
+<script src="vendor/chart.umd.min.js"></script>
+<script src="data.js?v=1791872362"></script><script src="board.js?v=1791872362"></script><script src="tx.js?v=1791872362"></script>
 <style>
-:root{--font:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Helvetica,Arial,"PingFang SC","Noto Sans CJK SC","Microsoft YaHei",sans-serif;--bg:#f5f5f7;--panel:#fff;--line:rgba(0,0,0,.06);--txt:#1d1d1f;--mut:#6e6e73;--acc:#5e9400;--accsoft:rgba(118,185,0,.12);--glass:rgba(251,251,253,.8)}
-@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#000;--panel:#161617;--line:rgba(255,255,255,.08);--txt:#f5f5f7;--mut:#a1a1a6;--acc:#76b900;--accsoft:rgba(118,185,0,.16);--glass:rgba(22,22,23,.8)}}
-:root[data-theme=dark]{--bg:#000;--panel:#161617;--line:rgba(255,255,255,.08);--txt:#f5f5f7;--mut:#a1a1a6;--acc:#76b900;--accsoft:rgba(118,185,0,.16);--glass:rgba(22,22,23,.8)}
-*{box-sizing:border-box}body{margin:0;font-family:var(--font);background:var(--bg);color:var(--txt);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+:root{--font:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Helvetica,Arial,"PingFang SC","Noto Sans CJK SC","Microsoft YaHei",sans-serif;--bg:#f5f5f7;--panel:#fff;--line:rgba(0,0,0,.06);--txt:#1d1d1f;--mut:#6e6e73;--acc:#5e9400;--accsoft:rgba(118,185,0,.12);--glass:rgba(251,251,253,.8);--pos:#1d8a3a;--neg:#d70015;--shadow:0 1px 1px rgba(0,0,0,.02),0 2px 12px rgba(0,0,0,.035)}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#000;--panel:#161617;--line:rgba(255,255,255,.08);--txt:#f5f5f7;--mut:#a1a1a6;--acc:#76b900;--accsoft:rgba(118,185,0,.16);--glass:rgba(22,22,23,.8);--pos:#30d158;--neg:#ff453a;--shadow:none}}
+:root[data-theme=dark]{--bg:#000;--panel:#161617;--line:rgba(255,255,255,.08);--txt:#f5f5f7;--mut:#a1a1a6;--acc:#76b900;--accsoft:rgba(118,185,0,.16);--glass:rgba(22,22,23,.8);--pos:#30d158;--neg:#ff453a;--shadow:none}
+*{box-sizing:border-box}html{scroll-padding-top:64px}body{margin:0;font-family:var(--font);background:var(--bg);color:var(--txt);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
 a{color:var(--acc);text-decoration:none}a:hover{text-decoration:underline}
 header{position:sticky;top:0;z-index:9;background:var(--glass);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);box-shadow:0 1px 0 var(--line)}
-.bar{max-width:1100px;margin:0 auto;padding:0 24px;height:52px;display:flex;align-items:center;gap:16px}
-.brand{display:flex;align-items:center;gap:10px;color:var(--txt)!important;text-decoration:none!important;font-weight:600}.brand img{width:30px;height:30px;border-radius:50%}
-nav{flex:1;display:flex;justify-content:center;gap:2px;overflow-x:auto}nav a{padding:6px 12px;border-radius:980px;color:var(--txt);opacity:.7;font-size:13px;white-space:nowrap;text-decoration:none!important}
+.bar{max-width:1200px;margin:0 auto;padding:0 24px;height:52px;display:flex;align-items:center;gap:14px}
+.brand{display:flex;align-items:center;gap:10px;color:var(--txt)!important;text-decoration:none!important;font-weight:600;flex:none}.brand img{width:30px;height:30px;border-radius:50%}
+nav{flex:1;display:flex;gap:0;overflow-x:auto;scrollbar-width:none}nav::-webkit-scrollbar{display:none}nav a{padding:6px 10px;border-radius:980px;color:var(--txt);opacity:.7;font-size:12px;white-space:nowrap;text-decoration:none!important}
 nav a.on{opacity:1;color:var(--acc);font-weight:600;background:var(--accsoft)}
-.btn{border:0;background:none;color:var(--mut);cursor:pointer;font:inherit;font-size:12px;display:flex;align-items:center;gap:5px;padding:4px 6px}
+.btn{border:0;background:none;color:var(--mut);cursor:pointer;font:inherit;font-size:12px;display:flex;align-items:center;gap:5px;padding:4px 6px;flex:none}
 .btn img{width:16px;height:16px;border-radius:50%}.lopt{opacity:.4;display:flex;gap:4px;align-items:center}.lopt.on{opacity:1;color:var(--txt)}
-main{max-width:1100px;margin:0 auto;padding:32px 24px}section{display:none}section.on{display:block}
-h2{font-size:28px;letter-spacing:-.02em;margin:0 0 16px}h3{font-size:17px;margin:28px 0 10px}
-.card{background:var(--panel);border-radius:18px;padding:8px 20px;overflow-x:auto}
-table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}th,td{padding:10px 8px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
-th{font-size:12px;color:var(--mut);font-weight:500}tr:last-child td{border:0}th:first-child,td:first-child,.l{text-align:left}
-.chair{color:var(--acc);font-weight:600}.notes{color:var(--mut);font-size:12px;margin:14px 2px 0;padding-left:18px}.notes li{margin:4px 0}
-#tv{height:520px;border-radius:18px;overflow:hidden;background:var(--panel)}
-footer{max-width:1100px;margin:0 auto;padding:24px;color:var(--mut);font-size:12px;border-top:1px solid var(--line)}
-html[data-lang=en] [data-zh-only],html[data-lang=zh] [data-en-only]{display:none}
+.hero{max-width:1200px;margin:0 auto;padding:40px 24px 0}.hero h1{font-size:44px;line-height:1.05;letter-spacing:-.035em;margin:0}.hero p{color:var(--mut);margin:6px 0 0}
+main{max-width:1200px;margin:0 auto;padding:24px 24px 40px}section{display:none}section.on{display:block}
+h2{font-size:30px;letter-spacing:-.025em;margin:8px 0 18px}h3{font-size:16px;margin:0 0 12px;letter-spacing:-.01em}h3 small{font-weight:400;color:var(--mut);font-size:12px;margin-left:6px}
+.grid{display:grid;gap:16px;grid-template-columns:repeat(12,1fr);margin-bottom:16px}.c3{grid-column:span 3}.c4{grid-column:span 4}.c6{grid-column:span 6}.c8{grid-column:span 8}.c12{grid-column:span 12}
+@media(max-width:900px){.c3,.c4{grid-column:span 6}.c6,.c8{grid-column:span 12}.hero h1{font-size:32px}}@media(max-width:560px){.c3,.c4{grid-column:span 12}}
+.card{background:var(--panel);border-radius:18px;padding:18px 20px;box-shadow:var(--shadow);overflow-x:auto;min-width:0}
+.k .lbl{font-size:12px;color:var(--mut)}.k .v{font-size:26px;font-weight:650;letter-spacing:-.02em;margin:2px 0}.k .s{font-size:12px;color:var(--mut)}
+.pos{color:var(--pos)}.neg{color:var(--neg)}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;font-size:13px}th,td{padding:8px 8px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-size:12px;color:var(--mut);font-weight:500}tr:last-child td{border:0}th:first-child,td:first-child,.l{text-align:left}tr.sub td{color:var(--mut)}tr.tot td{font-weight:600}
+.chair{color:var(--acc);font-weight:600}.notes{color:var(--mut);font-size:12px;margin:10px 0 0;padding-left:18px}.notes li{margin:3px 0}
+.ch{position:relative;height:280px}.ch.t{height:340px}
+#tv{height:480px;border-radius:18px;overflow:hidden;background:var(--panel)}
+ul.tk{margin:0;padding-left:18px}ul.tk li{margin:6px 0}blockquote{margin:0 0 12px;padding:0 0 0 12px;border-left:3px solid var(--acc);color:var(--mut);font-style:italic}
+.pill{display:inline-block;font-size:11px;padding:1px 7px;border-radius:980px;background:var(--accsoft);color:var(--acc)}
+select{font:inherit;font-size:12px;background:var(--panel);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:3px 6px}
+footer{max-width:1200px;margin:0 auto;padding:24px;color:var(--mut);font-size:12px;border-top:1px solid var(--line)}
 </style></head><body>
-<header><div class="bar"><a class="brand" href="#price"><img src="seal.png?v=1791870507" alt="">NVIDIA <span style="color:var(--mut);font-weight:500">NVDA</span></a>
-<nav><a href="#price" data-k="price"></a><a href="#fin" data-k="fin"></a><a href="#ins" data-k="ins"></a></nav>
+<header><div class="bar"><a class="brand" href="#overview"><img src="seal.png?v=1791872362" alt="">NVDA</a><nav id="nav"></nav>
 <button class="btn" id="lang"><span class="lopt" data-l="en"><img src="flag-us.svg" alt="">EN</span>/<span class="lopt" data-l="zh"><img src="flag-cn.svg" alt="">中文</span></button>
-<button class="btn" id="theme">◐</button></div></header>
-<main>
-<section id="price"><div id="tv"></div><ul class="notes"><li data-k="n_tv"></li></ul></section>
-<section id="fin"><h2 data-k="fin_h"></h2><div class="card"><table id="ft"></table></div><ul class="notes" id="fn"></ul></section>
-<section id="ins"><h2 data-k="board_h"></h2><div class="card"><table id="bt"></table></div><h3 data-k="exec_h"></h3><div class="card"><table id="et"></table></div><ul class="notes" id="in"></ul></section>
-</main>
-<footer><span data-k="copy"></span></footer>
-<script>
-const D=window.NVDA_DATA,B=window.NVDA_BOARD,P=B.proxy;
-const T={en:{price:'Price',fin:'Financials',ins:'Insiders',copy:'© 2026 Hugo Tian. All rights reserved.',
-n_tv:'Live price and chart: TradingView widget (NASDAQ:NVDA).',fin_h:'Quarterly results (GAAP)',q:'Quarter',end:'Period end',rev:'Revenue',gm:'Gross margin',op:'Operating income',ni:'Net income',eps:'Diluted EPS',
-board_h:'Board of Directors',exec_h:'Executive officers not on the board',name:'Name',role:'Role',com:'Committees',since:'Joined',sh:'Shares held',pct:'% outstanding',fil:'Latest filing',
-ceo:'Co-founder, President & CEO',lead:'Lead independent director',ind:'Independent director',cfo:'EVP & Chief Financial Officer',ops:'EVP, Operations',gc:'EVP & General Counsel',
-wwfo_ret:'EVP, Worldwide Field Operations (retiring; senior adviser)',wwfo:'EVP, Worldwide Field Operations (from 24 Aug 2026)',cao:'VP & Chief Accounting Officer',a:'Audit',c:'Compensation',n:'Nominating & Governance',chair:'chair',
-fn:()=>[`Source: SEC XBRL company facts (10-Q / 10-K). NVIDIA's fiscal year ends in late January (FY27 ends 31 Jan 2027). Q4 figures are fiscal year minus Q1–Q3, so they can differ by $1M from the press release; Q4 diluted EPS is from the <a href="https://www.sec.gov/Archives/edgar/data/1045810/000104581026000019/q4fy26pr.htm">Q4 FY26 press release</a>.`,`Data built ${D.built.replace('T',' ')} UTC from filings; it refreshes only when the site is republished.`],
-inn:()=>[`Roles, committees and join years: <a href="${P}">2026 proxy statement</a> (filed 12 May 2026); Suzanne Nora Johnson joined 13 Jul 2026 on the Audit Committee (<a href="https://www.sec.gov/Archives/edgar/data/1045810/000104581026000028/nvda-20260507.htm">8-K</a>). Persis Drell resigned 20 Jan 2026. Mark Stevens also served 1993–2006.`,
-`Executive officers: FY2026 10-K plus 8-Ks for Ajay Puri's retirement and Nicholas Parker's appointment (<a href="https://www.sec.gov/Archives/edgar/data/1045810/000104581026000060/nvda-20260628.htm">8-K</a>) and Scott Gawel as CAO from 4 May 2026 (<a href="https://www.sec.gov/Archives/edgar/data/1045810/000104581026000026/nvda-20260424.htm">8-K</a>).`,
-`Shares held = common stock from each person's latest Form 3/4/5 lines (direct plus every indirect trust/partnership line reported in the two years before their latest filing). Options and unvested RSUs/PSUs reported as derivatives are excluded; Form figures can differ from the proxy's beneficial-ownership table. % uses ${(D.so/1e9).toFixed(2)}bn shares outstanding at ${D.so_date} (${D.so_form} cover).`]},
-zh:{price:'股价',fin:'财务',ins:'内部人士',copy:'© 2026 Hugo Tian. 版权所有。',n_tv:'实时股价与图表：TradingView 小组件（NASDAQ:NVDA）。',fin_h:'季度业绩（GAAP）',q:'季度',end:'期末',rev:'营收',gm:'毛利率',op:'营业利润',ni:'净利润',eps:'稀释每股收益',
-board_h:'董事会',exec_h:'非董事会成员的高管',name:'姓名',role:'职务',com:'委员会',since:'加入年份',sh:'持股数',pct:'占流通股',fil:'最新申报',
-ceo:'联合创始人、总裁兼首席执行官',lead:'首席独立董事',ind:'独立董事',cfo:'执行副总裁兼首席财务官',ops:'执行副总裁，运营',gc:'执行副总裁兼总法律顾问',wwfo_ret:'执行副总裁，全球现场运营（即将退休，转任高级顾问）',wwfo:'执行副总裁，全球现场运营（2026 年 8 月 24 日起）',cao:'副总裁兼首席会计官',a:'审计',c:'薪酬',n:'提名与治理',chair:'主席',
-fn:()=>[`来源：SEC XBRL 公司财务数据（10-Q / 10-K）。英伟达财年于 1 月下旬结束（FY27 截至 2027 年 1 月 31 日）。第四季度数据为全年减去前三季度，可能与新闻稿相差 100 万美元；第四季度稀释每股收益取自 <a href="https://www.sec.gov/Archives/edgar/data/1045810/000104581026000019/q4fy26pr.htm">FY26 第四季度新闻稿</a>。`,`数据于 UTC ${D.built.replace('T',' ')} 根据申报文件生成，仅在网站重新发布时更新。`],
-inn:()=>[`职务、委员会及加入年份：<a href="${P}">2026 年委托书</a>（2026 年 5 月 12 日提交）；Suzanne Nora Johnson 于 2026 年 7 月 13 日加入并任审计委员会成员（<a href="https://www.sec.gov/Archives/edgar/data/1045810/000104581026000028/nvda-20260507.htm">8-K</a>）。Persis Drell 于 2026 年 1 月 20 日辞任。Mark Stevens 曾于 1993–2006 年任董事。`,
-`高管：FY2026 年报，以及 Ajay Puri 退休与 Nicholas Parker 任命（<a href="https://www.sec.gov/Archives/edgar/data/1045810/000104581026000060/nvda-20260628.htm">8-K</a>）、Scott Gawel 自 2026 年 5 月 4 日任首席会计官（<a href="https://www.sec.gov/Archives/edgar/data/1045810/000104581026000026/nvda-20260424.htm">8-K</a>）。`,
-`持股数 = 每人最新表格 3/4/5 中的普通股（直接持有，加上其最新申报前两年内申报过的各信托/合伙间接持有行）。不含作为衍生证券申报的期权及未归属 RSU/PSU；可能与委托书的实益持股表不同。占比按 ${D.so_date}（${D.so_form} 封面）流通股 ${(D.so/1e8).toFixed(0)} 亿股计算。`]}};
-let L=document.documentElement.dataset.lang;const t=k=>T[L][k];
-const fq=e=>{const y=+e.slice(0,4),m=+e.slice(5,7);return m<=2?`Q4 FY${String(y).slice(2)}`:`Q${m<=5?1:m<=8?2:3} FY${String(y+1).slice(2)}`};
-
-const money=v=>v==null?'—':L==='zh'?'$'+(v/1e8).toFixed(0)+' 亿':'$'+(v/1e9).toFixed(2)+'bn';
-const nf=v=>v==null?'—':v.toLocaleString('en-US');
-function render(){document.querySelectorAll('[data-k]').forEach(e=>e.innerHTML=t(e.dataset.k));
-document.querySelectorAll('.lopt').forEach(e=>e.classList.toggle('on',e.dataset.l===L));
-document.title=L==='zh'?'英伟达 (NVDA) 看板 · © 2026 Hugo Tian':'NVIDIA (NVDA) Dashboard · © 2026 Hugo Tian';
-const R=[...D.rows].reverse();
-ft.innerHTML=`<tr><th>${t('q')}</th><th>${t('end')}</th><th>${t('rev')}</th><th>${t('gm')}</th><th>${t('op')}</th><th>${t('ni')}</th><th>${t('eps')}</th></tr>`+R.map(r=>`<tr><td>${fq(r.end)}</td><td>${r.end}</td><td>${money(r.rev)}</td><td>${(r.gp/r.rev*100).toFixed(1)}%</td><td>${money(r.op)}</td><td>${money(r.ni)}</td><td>${r.eps==null?'—':'$'+r.eps.toFixed(2)}</td></tr>`).join('');
-fn.innerHTML=t('fn')().map(x=>`<li>${x}</li>`).join('');
-const sh=p=>`<td>${nf(p.shares)}</td><td>${p.shares==null?'—':(p.shares/D.so*100).toFixed(p.shares/D.so>.001?2:4)+'%'}</td><td>${p.url?`<a href="${p.url}">Form ${p.form} · ${p.date}</a>`:'—'}</td>`;
-const com=c=>Object.entries(c).map(([k,v])=>v?`<span class="chair">${t(k)} (${t('chair')})</span>`:t(k)).join(', ')||'—';
-bt.innerHTML=`<tr><th>${t('name')}</th><th class="l">${t('role')}</th><th class="l">${t('com')}</th><th>${t('since')}</th><th>${t('sh')}</th><th>${t('pct')}</th><th>${t('fil')}</th></tr>`+B.directors.map(p=>`<tr><td>${p.name}</td><td class="l">${t(p.role)}</td><td class="l">${com(p.com)}</td><td>${p.since}</td>${sh(p)}</tr>`).join('');
-et.innerHTML=`<tr><th>${t('name')}</th><th class="l">${t('role')}</th><th>${t('sh')}</th><th>${t('pct')}</th><th>${t('fil')}</th></tr>`+B.execs.map(p=>`<tr><td>${p.name}</td><td class="l">${t(p.role)}</td>${sh(p)}</tr>`).join('');
-document.getElementById('in').innerHTML=t('inn')().map(x=>`<li>${x}</li>`).join('');tv()}
-let tvk='';function tv(){const dark=document.documentElement.dataset.theme==='dark'||(!document.documentElement.dataset.theme&&matchMedia('(prefers-color-scheme: dark)').matches),k=L+dark;if(k===tvk)return;tvk=k;
-const el=document.getElementById('tv');el.innerHTML='<div class="tradingview-widget-container" style="height:100%"><div class="tradingview-widget-container__widget" style="height:100%"></div></div>';const box=el.firstChild,s=document.createElement('script');s.type='text/javascript';s.src='https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';s.async=true;
-s.textContent=JSON.stringify({symbol:'NASDAQ:NVDA',interval:'D',autosize:true,theme:dark?'dark':'light',style:'1',locale:L==='zh'?'zh_CN':'en',hide_side_toolbar:true,allow_symbol_change:false,timezone:'Asia/Singapore',backgroundColor:dark?'#161617':'#ffffff'});box.appendChild(s)}
-function route(){const h=(location.hash||'#price').slice(1),id=['price','fin','ins'].includes(h)?h:'price';document.querySelectorAll('section').forEach(s=>s.classList.toggle('on',s.id===id));document.querySelectorAll('nav a').forEach(a=>a.classList.toggle('on',a.dataset.k===id))}
-lang.onclick=()=>{L=L==='en'?'zh':'en';document.documentElement.dataset.lang=L;document.documentElement.lang=L==='zh'?'zh-CN':'en';try{localStorage.setItem('nvda-lang',L)}catch(e){}render()};
-theme.onclick=()=>{const d=document.documentElement,cur=d.dataset.theme||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');d.dataset.theme=cur==='dark'?'light':'dark';try{localStorage.setItem('nvda-theme',d.dataset.theme)}catch(e){}tv()};
-addEventListener('hashchange',route);route();render();
-</script></body></html>
+<button class="btn" id="theme" title="Theme">◐</button></div></header>
+<div class="hero"><h1 id="h1"></h1><p id="sub"></p></div>
+<main id="main"></main>
+<footer id="foot"></footer>
+<script src="app.js?v=1791872362"></script>
+</body></html>
