@@ -2,11 +2,11 @@
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>NVIDIA (NVDA) Dashboard · © 2026 Hugo Tian</title><meta name="author" content="Hugo Tian"><meta name="copyright" content="© 2026 Hugo Tian. All rights reserved.">
 <meta name="description" content="NVIDIA (NASDAQ: NVDA) investor dashboard: live price, financials, market platforms, capital returns, guidance, insiders, Wall Street, competition, valuation and SEC feed.">
-<meta name="color-scheme" content="light dark"><link rel="icon" type="image/png" href="favicon.png?v=1792628970"><link rel="apple-touch-icon" href="icon-180.png?v=1792628970">
+<meta name="color-scheme" content="light dark"><link rel="icon" type="image/png" href="favicon.png?v=1792715550"><link rel="apple-touch-icon" href="icon-180.png?v=1792715550">
 <script>(function(){var d=document.documentElement,l=null;try{l=localStorage.getItem('nvda-lang')}catch(e){}if(l!=='zh'&&l!=='en')l=/^zh/i.test(navigator.language||'')?'zh':'en';d.dataset.lang=l;d.lang=l==='zh'?'zh-CN':'en';
 var t=null;try{t=localStorage.getItem('nvda-theme')}catch(e){}if(t==='light'||t==='dark')d.dataset.theme=t})();</script>
 <script src="vendor/chart.umd.min.js"></script>
-<script src="data.js?v=1792628970"></script><script src="board.js?v=1792628970"></script><script src="tx.js?v=1792628970"></script><script src="x_feed.js?v=1792628970"></script><script src="extra.js?v=1792628970"></script>
+<script src="data.js?v=1792715550"></script><script src="board.js?v=1792715550"></script><script src="tx.js?v=1792715550"></script><script src="x_feed.js?v=1792715550"></script><script src="extra.js?v=1792715550"></script>
 <style>
 :root{--font:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Helvetica,Arial,"PingFang SC","Noto Sans CJK SC","Microsoft YaHei",sans-serif;--bg:#f5f5f7;--panel:#fff;--line:rgba(0,0,0,.06);--txt:#1d1d1f;--mut:#6e6e73;--acc:#5e9400;--accsoft:rgba(118,185,0,.12);--glass:rgba(251,251,253,.8);--pos:#1d8a3a;--neg:#d70015;--shadow:0 1px 1px rgba(0,0,0,.02),0 2px 12px rgba(0,0,0,.035)}
 @media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#000;--panel:#161617;--line:rgba(255,255,255,.08);--txt:#f5f5f7;--mut:#a1a1a6;--acc:#76b900;--accsoft:rgba(118,185,0,.16);--glass:rgba(22,22,23,.8);--pos:#30d158;--neg:#ff453a;--shadow:none}}
@@ -29,7 +29,7 @@ h2{font-size:30px;letter-spacing:-.025em;margin:8px 0 18px}h3{font-size:16px;mar
 .k .lbl{font-size:12px;color:var(--mut)}.k .v{font-size:26px;font-weight:650;letter-spacing:-.02em;margin:2px 0}.k .s{font-size:12px;color:var(--mut)}
 .pos{color:var(--pos)}.neg{color:var(--neg)}
 table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;font-size:13px}th,td{padding:8px 8px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
-th{font-size:12px;color:var(--mut);font-weight:500}tr:last-child td{border:0}td.w{white-space:normal;min-width:120px;line-height:1.45}th:first-child,td:first-child,.l{text-align:left}tr.sub td{color:var(--mut)}tr.tot td{font-weight:600}
+th{font-size:12px;color:var(--mut);font-weight:500}tr:last-child .lq-top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:2px 8px}.lq-sess{display:inline-flex;align-items:center;gap:6px}.lq-dot{width:7px;height:7px;border-radius:50%;background:var(--mut);display:inline-block}.lq.reg .lq-dot{background:var(--acc)}.lq-row{display:flex;align-items:baseline;flex-wrap:wrap;gap:2px 8px}.lq-k{font-size:12px;font-weight:600}.lq-k:empty{display:none}.lq-ch{font-size:13px;font-weight:500;font-variant-numeric:tabular-nums;white-space:nowrap}.lq-ch.pos{color:var(--pos)}.lq-ch.neg{color:var(--neg)}.lq-cap{font-size:11px;color:var(--mut);margin-top:3px;line-height:1.4}.lq.stale .lq-px{opacity:.6}td{border:0}td.w{white-space:normal;min-width:120px;line-height:1.45}th:first-child,td:first-child,.l{text-align:left}tr.sub td{color:var(--mut)}tr.tot td{font-weight:600}
 .chair{color:var(--acc);font-weight:600}.notes{color:var(--mut);font-size:12px;margin:10px 0 0;padding-left:18px}.notes li{margin:3px 0}
 .ch{position:relative;height:280px}.ch.t{height:340px}
 #tv{height:480px;border-radius:18px;overflow:hidden;background:var(--panel)}
@@ -38,11 +38,11 @@ ul.tk{margin:0;padding-left:18px}ul.tk li{margin:6px 0}blockquote{margin:0 0 12p
 select{font:inherit;font-size:12px;background:var(--panel);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:3px 6px}
 footer{max-width:1200px;margin:0 auto;padding:24px;color:var(--mut);font-size:12px;border-top:1px solid var(--line)}
 .ch canvas{image-rendering:auto}</style></head><body>
-<header><div class="bar"><a class="brand" href="#overview"><img src="seal.png?v=1792628970" alt="">NVDA</a><nav id="nav"></nav>
+<header><div class="bar"><a class="brand" href="#overview"><img src="seal.png?v=1792715550" alt="">NVDA</a><nav id="nav"></nav>
 <button class="btn" id="lang"><span class="lopt" data-l="en"><img src="flag-us.svg" alt="">EN</span>/<span class="lopt" data-l="zh"><img src="flag-cn.svg" alt="">中文</span></button>
 <button class="btn" id="theme" title="Theme">◐</button></div></header>
 <div class="hero"><h1 id="h1"></h1><p id="sub"></p></div>
 <main id="main"></main>
 <footer id="foot"></footer>
-<script src="app.js?v=1792628970"></script>
+<script src="app.js?v=1792715550"></script>
 </body></html>

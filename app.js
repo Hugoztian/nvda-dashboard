@@ -24,22 +24,22 @@ const hi52=Math.max(...M.pts.slice(-252).map(p=>p[1])),lo52=Math.min(...M.pts.sl
 const E2=window.NVDA_X2,CU=E2.cur;const NUM=i=>'①②③④⑤⑥⑦⑧⑨⑩'[i]||'('+(i+1)+')';
 const nextGuide=D.guide[D.guide.length-1];
 
-function S_overview(){const pv=M.pts[M.pts.length-2][1],ch=px/pv-1;const dc=D.pr.hl;
+function S_overview(){const dc=D.pr.hl;
  const tk=Object.entries(dc).map(([k,v])=>`<li><b>${k}:</b> ${v.filter(s=>!/quarter (Edge Computing )?revenue was/i.test(s)).slice(0,2).join(' ')}</li>`).join('');
  const W=E2.week,XP=Object.fromEntries((window.XFEED||{posts:[]}).posts.map(p=>[p.id,p]));
  const FN={'4':L('Form 4 · insider transaction','表格 4 · 内部人交易'),'4/A':L('Form 4/A · amended insider filing','表格 4/A · 内部人申报修订'),'8-K':L('8-K · current report','8-K · 重大事项报告'),'10-Q':L('10-Q · quarterly report','10-Q · 季度报告'),'10-K':L('10-K · annual report','10-K · 年度报告'),'144':L('Form 144 · proposed sale','表格 144 · 拟出售通知')};
  const wl=[...W.filings.map(f=>`<li><b>${f.date}</b> · ${FN[f.form]||f.form}${f.items?' ('+f.items+')':''} — ${link(f.url,L('SEC filing','SEC 文件'))}${/^4/.test(f.form)?` · <a href="#ins">${L('Insiders tab','内部人士页')}</a>`:''}</li>`),...W.posts.map(p=>`<li><b>${p.sgt.slice(0,10)}</b> · ${L('Post by @JensenHuang','@JensenHuang 发帖')}${XP[p.id]&&/^\s*\S/.test(XP[p.id].text)?' — “'+XP[p.id].text.split(/[\n.!?]/)[0].slice(0,90)+'”':''} — ${link(p.url,'X')} · <a href="#jensen">${L('Jensen tab','黄仁勋页')}</a></li>`)].sort().reverse();
  const major=W.filings.some(f=>/^(8-K|10-Q|10-K)/.test(f.form));
  const week=`<div class="grid">${box('c12',L('What changed this week','本周变化')+` <small>${W.from} → ${W.to.slice(0,10)}</small>`,wl.length?`<ul class="tk">${wl.join('')}</ul>`:`<p>${L('No new SEC filings or Jensen Huang posts.','无新的 SEC 文件或黄仁勋帖子。')}</p>`,[major?'':L('No new 8-K, 10-Q or 10-K this week; financial figures elsewhere are unchanged.','本周无新的 8-K、10-Q 或 10-K，其他页面财务数据不变。'),L(`Built at build time from the SEC EDGAR submissions feed (all forms) and @JensenHuang posts (X, fetched ${W.x_fetched}). 7-day window.`,`构建时依据 SEC EDGAR 提交记录（全部表格）及 @JensenHuang 帖子（X，抓取于 ${W.x_fetched}）生成，统计 7 天。`)].filter(Boolean))}</div>`;
- return week+`<div class="grid">${card('c3',L('Last close (build time)','最新收盘价（构建时）'),'$'+px.toFixed(2),`${L('vs prior close','较前收盘')} <span class="${sg(ch)}">${pm(ch,2)}</span> · ${M.t} UTC`)}
+ return week+`<div class="grid"><div class="card k c3"><div id="lq" class="lq" aria-live="polite"><div class="lbl lq-top"><span class="lq-sess"><i class="lq-dot"></i><span id="lq-sl">${L('Connecting to live quote…','正在连接实时报价…')}</span></span></div><div class="lq-row"><span class="lq-k" id="lq-k"></span><span class="v lq-px" id="lq-px">—</span><span class="lq-ch" id="lq-ch"></span></div><div class="s" id="lq-sub"></div><div class="lq-cap" id="lq-cap"></div></div></div>
  ${card('c3',L('Market cap','市值'),T$(mcap),L(`${(D.so/1e9).toFixed(2)}bn shares (${D.so_date})`,`${(D.so/1e8).toFixed(0)} 亿股（${D.so_date}）`))}
  ${card('c3',L('2026 year to date','2026 年初至今'),pm(ytd),L('vs last 2025 close','相对 2025 年最后收盘价'),sg(ytd))}
  ${card('c3',L('Next earnings (Q3 FY27)','下次财报（FY27 第三季度）'),C.next_earnings.date,L(`US time, after market. Announced on the ${link(C.next_earnings.src,'Q2 FY27 earnings call')}`,`美国时间，盘后。已在 ${link(C.next_earnings.src,'FY27 第二季度财报电话会')}上宣布`))}</div>
- <div class="grid"><div class="c12"><div id="tv"></div><ul class="notes"><li>${L('Live chart: TradingView widget (NASDAQ:NVDA), delayed quote. The last-close card is build-time market data.','实时图表：TradingView 小组件（NASDAQ:NVDA），报价有延迟。最新收盘价卡片为构建时市场数据。')}</li></ul></div></div>
+ <div class="grid"><div class="c12"><div id="tv"></div><ul class="notes"><li>${L('Live chart: TradingView widget (NASDAQ:NVDA), delayed quote. The live price card polls a quote endpoint every 15 s.','实时图表：TradingView 小组件（NASDAQ:NVDA），报价有延迟。实时价格卡片每 15 秒刷新报价接口。')}</li></ul></div></div>
  <div class="grid">${box('c6',L(`Key takeaways · ${fq(last.end)} press release`,`要点 · ${fq(last.end)} 新闻稿`),(D.pr.quote?`<blockquote>${D.pr.quote} — Jensen Huang</blockquote>`:'')+`<ul class="tk">${tk}</ul>`,[L(`Quoted from NVIDIA's ${link(D.pr.url,'press release')} (filed ${D.pr.filed}); kept in the original English.`,`摘自英伟达${link(D.pr.url,'新闻稿')}（${D.pr.filed} 提交），保留英文原文。`)])}
  ${box('c6',L('1-year relative performance','一年相对表现'),cv('cRel'),[L('Rebased to 100 one year ago; build-time daily closes. S&P 500 = ^GSPC.','以一年前为 100 重新基准；构建时日收盘价。S&P 500 = ^GSPC。')])}</div>`}
 function C_overview(){const s=D.rel,ds=Object.entries(s).map(([k,p],i)=>({label:k==='^GSPC'?'S&P 500':k,data:p.map(x=>({x:x[0],y:x[1]/p[0][1]*100})),borderColor:PAL[[0,3,4,5,8][i]],borderWidth:k==='NVDA'?2.5:1.5,pointRadius:0}));
- mk('cRel',{type:'line',data:{datasets:ds},options:{parsing:true,scales:{x:{type:'category',labels:s.NVDA.map(p=>p[0]),ticks:{maxTicksLimit:7}}}}});tv()}
+ setTimeout(liveQuote,0);mk('cRel',{type:'line',data:{datasets:ds},options:{parsing:true,scales:{x:{type:'category',labels:s.NVDA.map(p=>p[0]),ticks:{maxTicksLimit:7}}}}});tv()}
 
 function S_fin(){const q=R.map(r=>fq(r.end));const row=(lbl,k,f=B$,cls='')=>`<tr class="${cls}"><td>${lbl}</td>${R.map(r=>`<td>${f(typeof k==='function'?k(r):r[k])}</td>`).join('')}</tr>`;
  const eps=v=>v==null?'—':'$'+v.toFixed(2);
@@ -189,3 +189,22 @@ let cur='';function render(){const h=(location.hash||'#overview').slice(1);cur=S
 document.getElementById('lang').onclick=()=>{LG=LG==='en'?'zh':'en';doc.dataset.lang=LG;doc.lang=LG==='zh'?'zh-CN':'en';try{localStorage.setItem('nvda-lang',LG)}catch(e){}render()};
 document.getElementById('theme').onclick=()=>{const c=doc.dataset.theme||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');doc.dataset.theme=c==='dark'?'light':'dark';try{localStorage.setItem('nvda-theme',doc.dataset.theme)}catch(e){}render()};
 addEventListener('hashchange',()=>{render();scrollTo(0,0)});render();
+
+/* ---------- live quote: Micron dashboard's Cloudflare Worker (/api/quote), polled every 15 s while visible; client adapted from mu-dashboard ---------- */
+var QUOTE_API=(new URLSearchParams(location.search).get('quoteapi'))||'https://micron-dashboard.cashcache.workers.dev/api/quote?symbol=NVDA';
+var LQ={timer:null,fails:0,ok:false,last:null,prev:null};
+var WQ={'Regular':'常规','Pre-market':'盘前','After-hours':'盘后','Overnight':'夜盘','Closed':'休市'};var wq=x=>LG==='zh'?(WQ[x]||x):x;
+var usd=v=>'$'+(+v).toFixed(2),sgn=(v,d=2)=>(v>=0?'+':'−')+Math.abs(v).toFixed(d);
+var tET=ms=>new Date(ms).toLocaleTimeString('en-US',{timeZone:'America/New_York',hour12:false}),tSG=ms=>new Date(ms).toLocaleTimeString('en-GB',{timeZone:'Asia/Singapore',hour12:false});
+function renderQuote(q){const box=document.getElementById('lq');if(!box)return;const m=q.main||{},reg=q.session==='regular';box.classList.toggle('reg',reg);box.classList.toggle('stale',!!q.stale);
+ const $=id=>document.getElementById(id);
+ $('lq-sl').textContent=reg?L('Live · regular session','实时 · 常规交易时段'):(q.session==='closed'?L('Market closed','休市'):L(`${q.session_label} session`,`${wq(q.session_label)}时段`))+(q.session==='overnight'?L(' (8 PM–4 AM ET)','（美东 8 PM–4 AM）'):'');
+ $('lq-k').textContent=m.kind==='regular'?'':wq(m.label||'');
+ const px=$('lq-px');px.textContent=m.price!=null?usd(m.price):'—';if(LQ.prev!=null&&m.price!=null&&m.price!==LQ.prev){px.classList.remove('up','dn');void px.offsetWidth;px.classList.add(m.price>LQ.prev?'up':'dn')}LQ.prev=m.price;
+ const ch=$('lq-ch');if(m.pct!=null){ch.className='lq-ch '+(m.pct>=0?'pos':'neg');ch.textContent=`${m.change!=null?sgn(m.change)+' ':''}(${sgn(m.pct)}%)${reg?'':L(' vs close',' 较收盘')}`}else{ch.className='lq-ch';ch.textContent=''}
+ const pc=(reg?q.prev_close:q.ref_close)||q.prev_close||{};$('lq-sub').textContent=pc.price!=null?`${L('Prev close','前收盘')} ${usd(pc.price)}${pc.date?' · '+pc.date:''}`:'';
+ const venue=m.kind==='regular'?L('Nasdaq last sale via Robinhood','Nasdaq 最新成交价，经 Robinhood'):((q.ext&&q.ext.venue)?L(`${q.ext.venue} via Robinhood 24-hour feed`,`${q.ext.venue}，经 Robinhood 24 小时行情`):q.source);
+ $('lq-cap').textContent=(m.time?L(`as of ${tET(m.time)} ET (${tSG(m.time)} SGT)`,`截至美东 ${tET(m.time)}（新加坡 ${tSG(m.time)}）`):'')+` · ${venue}`+(q.stale?L(' · last good update, retrying',' · 最近一次有效更新，正在重试'):L(' · refreshes every 15 s',' · 每 15 秒刷新'))}
+function quoteFallback(){const $=id=>document.getElementById(id);if(!$('lq'))return;$('lq-sl').textContent=L('Live quote unavailable — build-time close','实时报价不可用——构建时收盘价');$('lq-k').textContent='';$('lq-px').textContent='$'+px.toFixed(2);$('lq-ch').textContent='';$('lq-sub').textContent=`${L('Prev close','前收盘')} $${M.pts[M.pts.length-2][1].toFixed(2)}`;$('lq-cap').textContent=L(`Build-time market data · ${M.t} UTC`,`构建时市场数据 · ${M.t} UTC`)}
+async function pollQuote(){if(document.visibilityState==='hidden')return;try{const ctl=new AbortController(),to=setTimeout(()=>ctl.abort(),8000);const r=await fetch(QUOTE_API+(QUOTE_API.includes('?')?'&':'?')+'t='+Date.now(),{cache:'no-store',signal:ctl.signal});clearTimeout(to);const q=await r.json();if(!q||!q.ok||!q.main)throw new Error('bad quote');LQ.fails=0;LQ.ok=true;LQ.last=q;renderQuote(q)}catch(e){LQ.fails++;if(LQ.last)renderQuote({...LQ.last,stale:true});else quoteFallback()}}
+function liveQuote(){clearTimeout(LQ.timer);if(LQ.last)renderQuote(LQ.last);const loop=async()=>{await pollQuote();LQ.timer=setTimeout(loop,LQ.fails===0?15000:Math.min(60000,15000*2**Math.min(LQ.fails,2)))};loop();if(!LQ.vis){LQ.vis=1;document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')liveQuote()})}}
