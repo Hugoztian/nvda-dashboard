@@ -34,7 +34,7 @@ function S_overview(){const dc=D.pr.hl;
  return week+`<div class="grid"><div class="card k c3"><div id="lq" class="lq" aria-live="polite"><div class="lbl lq-top"><span class="lq-sess"><i class="lq-dot"></i><span id="lq-sl">${'Connecting to live quote…'}</span></span></div><div class="lq-row"><span class="lq-k" id="lq-k"></span><span class="v lq-px" id="lq-px">—</span><span class="lq-ch" id="lq-ch"></span></div><div class="s" id="lq-sub"></div><div class="lq-cap" id="lq-cap"></div></div></div>
  ${card('c3','Market cap',T$(mcap),`${(D.so/1e9).toFixed(2)}bn shares (${D.so_date})`)}
  ${card('c3','2026 year to date',pm(ytd),'vs last 2025 close',sg(ytd))}
- ${card('c3','Next earnings (Q3 FY27)',C.next_earnings.date,`US time, after market. Announced on the ${link(C.next_earnings.src,'Q2 FY27 earnings call')}`)}</div>
+ ${card('c3','Next earnings (Q3 FY27)',C.next_earnings.date,`US time, after market (call 2 p.m. PT = 06:00 SGT next day). ${link(C.next_earnings.src,'NVIDIA release, 28 Oct')}`)}</div>
  <div class="grid"><div class="c12"><div id="tv"></div><ul class="notes"><li>${'Live chart: TradingView widget (NASDAQ:NVDA), delayed quote. The live price card polls a quote endpoint every 15 s.'}</li></ul></div></div>
  <div class="grid">${box('c6',`Key takeaways · ${fq(last.end)} press release`,(D.pr.quote?`<blockquote>${D.pr.quote} — Jensen Huang</blockquote>`:'')+`<ul class="tk">${tk}</ul>`,[`Quoted from NVIDIA's ${link(D.pr.url,'press release')} (filed ${D.pr.filed}); kept in the original English.`])}
  ${box('c6','1-year relative performance',cv('cRel'),['Rebased to 100 one year ago; build-time daily closes. S&P 500 = ^GSPC.'])}</div>`}
@@ -138,7 +138,7 @@ function S_street(){const t=C.target,pn={'0q':'Current quarter (Q3 FY27)','+1q':
  <div class="grid">${box('c12','Consensus estimates',tbl(['Period','Period end','EPS','EPS range','# EPS','Revenue','Revenue range','# rev','EPS revisions 30d'],rows))}</div>
  <div class="grid">${box('c6','EPS estimate drift'+`<small>${'current estimate vs 7–90 days ago'}</small>`,cv('cDrift'))}
  ${box('c6','Positioning',`<table><tr><td>${'Short interest'}</td><td>${N(C.short.shares)} ${'shares'}</td></tr><tr><td>${'Short % of float'}</td><td>${P(C.short.pct_float,2)}</td></tr><tr><td>${'Held by institutions'}</td><td>${P(C.inst_pct)}</td></tr><tr><td>${'Beta'}</td><td>${C.beta.toFixed(2)}</td></tr></table>`,[`Short interest as of ${C.short.date}.`])}</div>
- <ul class="notes"><li>${`${C.note} Next earnings date: ${link(C.next_earnings.src,'Q2 FY27 call transcript')}.`}</li></ul>`}
+ <ul class="notes"><li>${`${C.note} Next earnings date: ${link(C.next_earnings.src,'NVIDIA release (28 Oct 2026)')}.`}</li></ul>`}
 function C_street(){const pn={'0q':'Q3 FY27','+1q':'Q4 FY27','0y':'FY27','+1y':'FY28'};mk('cDrift',{type:'bar',data:{labels:C.periods.map(p=>pn[p.p]),datasets:['7daysAgo','30daysAgo','60daysAgo','90daysAgo'].map((k,i)=>({label:{'7daysAgo':'vs 7d','30daysAgo':'vs 30d','60daysAgo':'vs 60d','90daysAgo':'vs 90d'}[k],data:C.periods.map(p=>+((p.trend.current/p.trend[k]-1)*100).toFixed(2)),backgroundColor:PAL[i]}))},options:{scales:{y:{ticks:{callback:v=>v+'%'}}}}})}
 
 
