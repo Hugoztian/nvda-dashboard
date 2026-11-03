@@ -10,7 +10,7 @@ const P=(v,d=1)=>v==null||!isFinite(v)?'—':(v*100).toFixed(d)+'%';const N=v=>v
 const sg=v=>v==null?'':(v>=0?'pos':'neg');const pm=(v,d=1)=>v==null?'—':(v>=0?'+':'')+(v*100).toFixed(d)+'%';
 const cs=()=>getComputedStyle(doc);const col=k=>cs().getPropertyValue(k).trim();
 const PAL=['#76b900','#3a7d00','#9fd356','#0a84ff','#ff9f0a','#bf5af2','#ff375f','#64d2ff','#8e8e93'];
-const TABS=[['overview','Overview',''],['fin','Financials',''],['seg','Market platforms',''],['cash','Cash & capital returns',''],['guide','Guidance & Wall Street',''],['ins','Insiders',''],['jensen','Jensen Huang',''],['comp','Rollout & demand',''],['video','YouTube / video',''],['val','Valuation',''],['src','Sources & SEC feed','']];
+const TABS=[['overview','Overview',''],['fin','Financials',''],['seg','Market platforms',''],['cash','Cash & capital returns',''],['guide','Guidance & Wall Street',''],['ins','Insiders',''],['holders','13F Holders',''],['jensen','Jensen Huang',''],['comp','Rollout & demand',''],['video','YouTube / video',''],['val','Valuation',''],['src','Sources & SEC feed','']];
 const M=D.mkt.NVDA,px=M.last,mcap=px*D.so,last=R[R.length-1],ttm=k=>R.slice(-4).reduce((a,r)=>a+(r[k]||0),0);
 const card=(cls,lbl,v,s='',vc='')=>`<div class="card k ${cls}"><div class="lbl">${lbl}</div><div class="v ${vc}">${v}</div><div class="s">${s}</div></div>`;
 const box=(cls,title,body,notes)=>`<div class="card ${cls}"><h3>${title}</h3>${body}${notes&&notes.length?`<ul class="notes">${notes.map(n=>`<li>${n}</li>`).join('')}</ul>`:''}</div>`;
@@ -181,7 +181,26 @@ function S_src(){const f=tbl(['Form','Filed','Report date',['Items / description
 let tvk='';function tv(){const el=document.getElementById('tv');if(!el)return;const dark=doc.dataset.theme==='dark'||(!doc.dataset.theme&&matchMedia('(prefers-color-scheme: dark)').matches),k=LG+dark;if(k===tvk&&el.querySelector('iframe'))return;tvk=k;
  el.innerHTML='<div class="tradingview-widget-container" style="height:100%"><div class="tradingview-widget-container__widget" style="height:100%"></div></div>';const s=document.createElement('script');s.type='text/javascript';s.async=true;s.src='https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
  s.textContent=JSON.stringify({symbol:'NASDAQ:NVDA',interval:'D',autosize:true,theme:dark?'dark':'light',style:'1',locale:('en'),hide_side_toolbar:true,allow_symbol_change:false,timezone:'Asia/Singapore',backgroundColor:dark?'#161617':'#ffffff'});el.firstChild.appendChild(s)}
-const S={overview:S_overview,fin:S_fin,seg:S_seg,cash:S_cash,guide:S_guide,ins:S_ins,jensen:S_jensen,comp:S_comp,video:S_video,val:S_val,src:S_src},CH={overview:C_overview,fin:C_fin,seg:C_seg,cash:C_cash,guide:C_guide,ins:C_ins,jensen:C_jensen,comp:C_comp,val:C_val};
+function S_holders(){const L=D.lawmakers;if(!L)return `<h2>13F Holders</h2><p>No data.</p>`;const W=L.windows,inW=(d,w)=>d>=w[0]&&d<=w[1];
+ const fd=s=>new Date(s+'T00:00:00Z').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'});
+ const m={};L.tx.forEach(t=>{const k=t.member;(m[k]=m[k]||{n:k,c:t.chamber,s:t.state,cur:[],pri:[],old:[],last:''});const r=m[k];(inW(t.traded,W.current)?r.cur:inW(t.traded,W.prior)?r.pri:r.old).push(t);if(t.filed>r.last)r.last=t.filed});
+ const net=a=>{const p=a.filter(t=>t.type==='Purchase').length,s=a.length-p;return !a.length?'—':p&&s?`${p} buy / ${s} sell`:p?`Bought (${p})`:`Sold (${s})`};
+ const st=r=>{const c=r.cur,p=r.pri.concat(r.old),b=x=>x.filter(t=>t.type==='Purchase').length,sl=x=>x.length-b(x);
+  if(!c.length)return 'No activity this period';if(!p.length)return b(c)&&!sl(c)?'New buyer':!b(c)?'New seller':'New (mixed)';
+  if(b(c)&&!sl(c))return sl(p)&&!b(p)?'Reversed to buying':'Kept buying';if(!b(c))return b(p)&&!sl(p)?'Reversed to selling':'Kept selling';return 'Mixed'};
+ const rows=Object.values(m).sort((a,b)=>b.last.localeCompare(a.last));
+ const sum=tbl(['Member',['Chamber'],'State',`Current period<br><small>${fd(W.current[0])}–${fd(W.current[1])}</small>`,`Prior period<br><small>${fd(W.prior[0])}–${fd(W.prior[1])}</small>`,['Change vs prior'],'Latest filing'],rows.map(r=>`<tr><td>${r.n}</td><td class="l">${r.c}</td><td>${r.s}</td><td>${net(r.cur)}</td><td>${net(r.pri)}</td><td class="l">${st(r)}</td><td>${fd(r.last)}</td></tr>`));
+ const tx=tbl(['Member',['Chamber'],'Type','Amount range','Traded','Filed','Source'],L.tx.map(t=>`<tr><td>${t.member}</td><td class="l">${t.chamber} · ${t.state}</td><td>${t.type}</td><td>${t.amount}</td><td>${fd(t.traded)}</td><td>${fd(t.filed)}</td><td>${t.pdf?link(t.pdf,'PTR PDF ✓'):link(L.sources[0].url,'MarketCast')}</td></tr>`));
+ const P=L.tx.filter(t=>t.type==='Purchase').length;
+ return `<h2>13F Holders</h2><div class="grid">${box('c12','Institutional 13F holders','<p>Coming soon — institutional 13F table not yet built for NVDA.</p>')}</div>
+ <div class="grid">${box('c12',`Lawmakers — U.S. Congress NVDA disclosures<small>${rows.length} members · ${L.tx.length} trades (${P} buys / ${L.tx.length-P} sells)</small>`,sum,[
+ `As of: House filings collected ${fd(L.asof.house)} (${L.coverage.house}); Senate filings collected ${fd(L.asof.senate)} (${L.coverage.senate}).`,
+ 'These are STOCK Act Periodic Transaction Reports (PTRs): each line is a transaction disclosed in a dollar range, not a share count or a current holding. Annual financial disclosures (value ranges) are not included, so "closed" positions cannot be confirmed and are not shown.',
+ 'Periods are by trade date. "Change vs prior" compares the direction of current-period trades with earlier disclosed trades; late filings (some over a year after the trade) can still change past periods.',
+ `Sources: ${L.sources.map(s=>link(s.url,s.name)).join('; ')}. Rows marked ✓ were checked against the official House PTR PDF.`])}</div>
+ <div class="grid">${box('c12','Every disclosed NVDA trade',tx,['Includes spouse/dependent-owned accounts as filed. Not investment advice.'])}</div>`}
+
+const S={overview:S_overview,fin:S_fin,seg:S_seg,cash:S_cash,guide:S_guide,ins:S_ins,holders:S_holders,jensen:S_jensen,comp:S_comp,video:S_video,val:S_val,src:S_src},CH={overview:C_overview,fin:C_fin,seg:C_seg,cash:C_cash,guide:C_guide,ins:C_ins,jensen:C_jensen,comp:C_comp,val:C_val};
 let cur='';function render(){const h=(location.hash||'#overview').slice(1);cur=S[h]?h:'overview';charts.splice(0).forEach(c=>c.destroy());tvk='';
  document.getElementById('nav').innerHTML=TABS.map(t=>`<a href="#${t[0]}" class="${t[0]===cur?'on':''}">${t[1]}</a>`).join('');
  document.getElementById('h1').textContent='NVIDIA (NVDA) Dashboard';document.getElementById('sub').textContent='NASDAQ: NVDA · AI computing · figures from SEC filings unless noted';
