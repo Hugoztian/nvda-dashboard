@@ -10,20 +10,58 @@ const P=(v,d=1)=>v==null||!isFinite(v)?'—':(v*100).toFixed(d)+'%';const N=v=>v
 const sg=v=>v==null?'':(v>=0?'pos':'neg');const pm=(v,d=1)=>v==null?'—':(v>=0?'+':'')+(v*100).toFixed(d)+'%';
 const cs=()=>getComputedStyle(doc);const col=k=>cs().getPropertyValue(k).trim();
 const PAL=['#76b900','#3a7d00','#9fd356','#0a84ff','#ff9f0a','#bf5af2','#ff375f','#64d2ff','#8e8e93'];
-const TABS=[['overview','Overview',''],['fin','Financials',''],['business','Platforms & demand',''],['guide','Street',''],['ownership','Ownership',''],['media','Media & sources','']];
+const TABS=[['overview','Overview',''],['fin','Financials',''],['business','Platforms & demand',''],['guide','Street',''],['ownership','Ownership & Jensen',''],['media','Media & sources','']];
 const M=D.mkt.NVDA,px=M.last,mcap=px*D.so,last=R[R.length-1],ttm=k=>R.slice(-4).reduce((a,r)=>a+(r[k]||0),0);
 const card=(cls,lbl,v,s='',vc='')=>`<div class="card k ${cls}"><div class="lbl">${lbl}</div><div class="v ${vc}">${v}</div><div class="s">${s}</div></div>`;
 const box=(cls,title,body,notes)=>`<div class="card ${cls}"><h3>${title}</h3>${body}${notes&&notes.length?`<ul class="notes">${notes.map(n=>`<li>${n}</li>`).join('')}</ul>`:''}</div>`;
-const cv=(id,tall)=>`<div class="ch ${tall?'t':''}"><canvas id="${id}"></canvas></div>`;
+const cv=(id,tall)=>`<div class="ch ${tall?'t':''}"><canvas id="${id}" title="Click to enlarge"></canvas><button type="button" class="cx" data-c="${id}" aria-label="Enlarge chart" title="Enlarge">⤢</button></div>`;
 const link=(u,t)=>`<a href="${u}" target="_blank" rel="noopener">${t}</a>`;
 const tbl=(head,rows)=>`<table><tr>${head.map((h,i)=>`<th${i&&typeof h==='object'?' class="l"':''}>${typeof h==='object'?h[0]:h}</th>`).join('')}</tr>${rows.join('')}</table>`;
 const charts=[];function mk(id,cfg){const el=document.getElementById(id);if(!el)return;const g=col('--line'),t=col('--mut');Chart.defaults.color=t;Chart.defaults.font.family=col('--font');Chart.defaults.borderColor=g;Chart.defaults.devicePixelRatio=Math.max(2,window.devicePixelRatio||1);Chart.defaults.elements.line.borderWidth=2;Chart.defaults.elements.line.tension=0;Chart.defaults.elements.point.radius=2.5;Chart.defaults.elements.point.hoverRadius=4;Chart.defaults.elements.bar.borderWidth=0;cfg.options=cfg.options||{};cfg.options.devicePixelRatio=Math.max(2,window.devicePixelRatio||1);cfg.options.animation=false;
- cfg.options=Object.assign({responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{position:'bottom',labels:{boxWidth:10,usePointStyle:true}}}},cfg.options||{});charts.push(new Chart(el,cfg))}
+ cfg.options=Object.assign({responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{position:'bottom',labels:{boxWidth:10,usePointStyle:true}}}},cfg.options||{});interact(cfg);el._cfg={type:cfg.type,data:cfg.data,options:cfg.options};charts.push(new Chart(el,cfg))}
+/* ---------- chart interactivity: tooltips + highlight on hover/tap, click (or ⤢) opens one shared in-page modal ---------- */
+let lastPtr='mouse';addEventListener('pointerdown',e=>{lastPtr=e.pointerType||'mouse'},true);
+function interact(cfg){const o=cfg.options,pl=o.plugins=o.plugins||{};const tt=pl.tooltip=Object.assign({enabled:true},pl.tooltip||{});
+ tt.callbacks=Object.assign({footer:()=>lastPtr==='touch'?'Tap again or ⤢ to enlarge':'Click to enlarge'},tt.callbacks||{});tt.footerFont={weight:'normal',size:10};
+ o.onHover=(e,els,ch)=>{ch.canvas.style.cursor='zoom-in'};
+ o.onClick=(e,els,ch)=>{const a=ch.chartArea,x=e.x,y=e.y;if(!a||x<a.left||x>a.right||y<a.top||y>a.bottom)return; // legend/axes clicks keep their default behaviour
+  if(lastPtr==='touch'){if(ch._armed&&Date.now()-ch._armed<5000){ch._armed=0;openChart(ch.canvas.id)}else ch._armed=Date.now();return}openChart(ch.canvas.id)};
+ (cfg.data.datasets||[]).forEach(d=>{if((d.type||cfg.type)==='bar'){d.hoverBorderWidth=d.hoverBorderWidth??2;d.hoverBorderColor=d.hoverBorderColor??col('--txt')}else{d.pointHoverRadius=d.pointHoverRadius??5;d.pointHoverBorderWidth=2}})}
+let mChart=null,mPrev=null;
+function closeChart(){const m=document.getElementById('cm');if(!m||m.hidden)return;m.hidden=true;document.body.style.overflow='';if(mChart){mChart.destroy();mChart=null}if(mPrev&&mPrev.focus)mPrev.focus()}
+function openChart(id){const src=document.getElementById(id);if(!src||!src._cfg)return;const c=src._cfg,card=src.closest('.card');mPrev=document.activeElement;
+ let m=document.getElementById('cm');if(!m){m=document.createElement('div');m.id='cm';m.hidden=true;m.innerHTML='<div class="cm-bg" data-x="1"></div><div class="cm-p" role="dialog" aria-modal="true" aria-labelledby="cm-t"><button type="button" class="cm-x" data-x="1" aria-label="Close">×</button><h3 id="cm-t"></h3><div class="cm-ch"><canvas id="cm-c"></canvas></div><div id="cm-tb"></div><ul class="notes" id="cm-n"></ul><div class="cm-b" id="cm-b"></div></div>';document.body.appendChild(m);
+  m.addEventListener('click',e=>{if(e.target.closest('[data-x]'))closeChart()});}
+ const h=card&&card.querySelector('h3');document.getElementById('cm-t').innerHTML=h?h.innerHTML:'Chart';
+ // larger copy of the same chart
+ const ds=c.data.datasets.map(d=>Object.assign({},d,{data:Array.isArray(d.data)?d.data.slice():d.data}));
+ if(mChart)mChart.destroy();m.hidden=false;document.body.style.overflow='hidden';
+ const opt=Object.assign({},c.options,{onClick:null,onHover:null,maintainAspectRatio:false});
+ mChart=new Chart(document.getElementById('cm-c'),{type:c.type,data:{labels:c.data.labels?c.data.labels.slice():undefined,datasets:ds},options:opt});
+ // data table with period-over-period change
+ const lab=i=>{const L=c.data.labels;if(L&&L[i]!=null)return Array.isArray(L[i])?L[i].filter(Boolean).join(' '):L[i];const p=ds[0]&&ds[0].data[i];return p&&typeof p==='object'?p.x:i+1};
+ const val=v=>v==null?null:typeof v==='object'?v.y:v,fmt=v=>v==null||isNaN(v)?'—':Math.abs(v)>=100?(+v).toLocaleString('en-US',{maximumFractionDigits:1}):(+v).toFixed(2).replace(/\.?0+$/,'');
+ const n=Math.max(...ds.map(d=>(d.data||[]).length)),step=n>80?Math.ceil(n/60):1,idx=[];for(let i=0;i<n;i+=step)idx.push(i);if(idx[idx.length-1]!==n-1)idx.push(n-1);
+ const head=`<tr><th>Period</th>${ds.map(d=>`<th>${d.label||''}</th><th class="cm-d">Δ vs prior</th>`).join('')}</tr>`;
+ const body=idx.slice().reverse().map((i,k,arr)=>{const j=arr[k+1];return `<tr><td>${lab(i)}</td>${ds.map(d=>{const v=val(d.data[i]),pv=j!=null?val(d.data[j]):null,dl=v!=null&&pv!=null?v-pv:null;return `<td>${fmt(v)}</td><td class="cm-d ${dl==null?'':dl>=0?'pos':'neg'}">${dl==null?'—':(dl>=0?'+':'')+fmt(dl)}</td>`}).join('')}</tr>`}).join('');
+ document.getElementById('cm-tb').innerHTML=`<div class="cm-tw"><table>${head}${body}</table></div>`+(step>1?`<p class="cm-s">Every ${step}th point shown in the table (${n} points in the chart); newest first.</p>`:'<p class="cm-s">Newest first. Δ = change from the previous period in the chart\'s own unit.</p>');
+ // notes as plain text; source links only as explicit buttons
+ const nt=card?[...card.querySelectorAll('ul.notes li')]:[],links=[];nt.forEach(li=>li.querySelectorAll('a[href]').forEach(a=>{if(!links.some(l=>l[0]===a.href))links.push([a.href,a.textContent.trim()])}));
+ document.getElementById('cm-n').innerHTML=nt.map(li=>`<li>${li.textContent.replace(/</g,'&lt;')}</li>`).join('');
+ document.getElementById('cm-b').innerHTML=links.slice(0,6).map(([u,t])=>u.startsWith(location.origin+location.pathname+'#')?`<button type="button" class="cm-btn" data-go="${u.split('#')[1]}">Go to ${t} →</button>`:`<a class="cm-btn" href="${u}" target="_blank" rel="noopener">Open source: ${t.slice(0,40)} ↗</a>`).join('')+`<button type="button" class="cm-btn" data-x="1">Close</button>`;
+ document.querySelectorAll('#cm-b [data-go]').forEach(b=>b.onclick=()=>{closeChart();location.hash='#'+b.dataset.go});
+ m.querySelector('.cm-x').focus()}
+addEventListener('keydown',e=>{if(e.key==='Escape')closeChart()});
+document.addEventListener('click',e=>{const b=e.target.closest('.cx');if(b){e.preventDefault();openChart(b.dataset.c)}});
 const ytd=(()=>{const p=M.pts.filter(x=>x[0]<'2026-01-01').pop();return p?px/p[1]-1:null})();
 const hi52=Math.max(...M.pts.slice(-252).map(p=>p[1])),lo52=Math.min(...M.pts.slice(-252).map(p=>p[1]));
 const E2=window.NVDA_X2,CU=E2.cur;const NUM=i=>'①②③④⑤⑥⑦⑧⑨⑩'[i]||'('+(i+1)+')';
 const nextGuide=D.guide[D.guide.length-1];
 
+function KEYS(){return `<div class="grid keys"><div class="card k c3"><div id="lq" class="lq" aria-live="polite"><div class="lbl lq-top"><span class="lq-sess"><i class="lq-dot"></i><span id="lq-sl">${'Connecting to live quote…'}</span></span></div><div class="lq-row"><span class="lq-k" id="lq-k"></span><span class="v lq-px" id="lq-px">—</span><span class="lq-ch" id="lq-ch"></span></div><div class="s" id="lq-sub"></div><div class="lq-cap" id="lq-cap"></div></div></div>
+ ${card('c3','Market cap',T$(mcap),`${(D.so/1e9).toFixed(2)}bn shares (${D.so_date})`)}
+ ${card('c3','2026 year to date',pm(ytd),'vs last 2025 close',sg(ytd))}
+ ${card('c3','Next earnings (Q3 FY27)',C.next_earnings.date,`US time, after market (call 2 p.m. PT = 06:00 SGT next day). ${link(C.next_earnings.src,'NVIDIA release, 28 Oct')}`)}</div>`;}
 function S_overview(){const dc=D.pr.hl;
  const tk=Object.entries(dc).map(([k,v])=>`<li><b>${k}:</b> ${v.filter(s=>!/quarter (Edge Computing )?revenue was/i.test(s)).slice(0,2).join(' ')}</li>`).join('');
  const W=E2.week,XP=Object.fromEntries((window.XFEED||{posts:[]}).posts.map(p=>[p.id,p]));
@@ -36,16 +74,13 @@ function S_overview(){const dc=D.pr.hl;
  const major=W.filings.some(f=>/^(8-K|10-Q|10-K)/.test(f.form));
  const week=`<div class="grid as">${box('c6 wncard',"What's new this week"+` <small>${W.from} → ${W.to.slice(0,10)}</small>`,wl.length?`<ul class="tk week">${wl.join('')}</ul>`:`<p>Nothing material this week.</p>`,[major?'':'No new 8-K, 10-Q or 10-K this week; financial figures elsewhere are unchanged.','Newest first. Items from the last 48 hours are in NVIDIA green with a 48h badge; older items in the 7-day window are grey.',`Headlines from the daily news scan (Mon–Sat); filings and posts built at build time from the SEC EDGAR submissions feed (all forms) and @JensenHuang posts (X, fetched ${W.x_fetched}). 7-day window.`].filter(Boolean))}${coming}</div>`;
  // Summary cards stay under Last updated. Overview heading, then the week feed beside Coming up, then takeaways and the relative chart. The live price chart is on Financials.
- const market=`<div class="grid"><div class="card k c3"><div id="lq" class="lq" aria-live="polite"><div class="lbl lq-top"><span class="lq-sess"><i class="lq-dot"></i><span id="lq-sl">${'Connecting to live quote…'}</span></span></div><div class="lq-row"><span class="lq-k" id="lq-k"></span><span class="v lq-px" id="lq-px">—</span><span class="lq-ch" id="lq-ch"></span></div><div class="s" id="lq-sub"></div><div class="lq-cap" id="lq-cap"></div></div></div>
- ${card('c3','Market cap',T$(mcap),`${(D.so/1e9).toFixed(2)}bn shares (${D.so_date})`)}
- ${card('c3','2026 year to date',pm(ytd),'vs last 2025 close',sg(ytd))}
- ${card('c3','Next earnings (Q3 FY27)',C.next_earnings.date,`US time, after market (call 2 p.m. PT = 06:00 SGT next day). ${link(C.next_earnings.src,'NVIDIA release, 28 Oct')}`)}</div>`;
+
  const takeaways=`<div class="grid">${box('c6',`Key takeaways · ${fq(last.end)} press release`,(D.pr.quote?`<blockquote>${D.pr.quote} — Jensen Huang</blockquote>`:'')+`<ul class="tk">${tk}</ul>`,[`Quoted from NVIDIA's ${link(D.pr.url,'press release')} (filed ${D.pr.filed}); kept in the original English.`])}
  ${box('c6','1-year relative performance',cv('cRel'),['Rebased to 100 one year ago; build-time daily closes. S&P 500 = ^GSPC.'])}</div>`;
  const revmar=`<div class="grid">${box('c12','Revenue & margins (8Q)'+` <small>${fq(R[0].end)} – ${fq(last.end)} · GAAP</small>`,cv('cRM'),[`Bars: quarterly revenue ($bn). Lines: GAAP gross and operating margin. Source: SEC XBRL company facts from NVIDIA's 10-Q/10-K (fiscal year ends late January; Q4 = fiscal year minus Q1–Q3). Full statements on ${'<a href="#fin">Financials</a>'}.`])}</div>`;
- return market+`<h2>${'Overview'}</h2>`+week+takeaways+revmar}
+ return `<h2>${'Overview'}</h2>`+week+takeaways+revmar}
 function C_overview(){const s=D.rel,ds=Object.entries(s).map(([k,p],i)=>({label:k==='^GSPC'?'S&P 500':k,data:p.map(x=>({x:x[0],y:x[1]/p[0][1]*100})),borderColor:PAL[[0,3,4,5,8][i]],borderWidth:k==='NVDA'?2.5:1.5,pointRadius:0}));
- setTimeout(liveQuote,0);mk('cRM',{type:'bar',data:{labels:R.map(r=>fq(r.end)),datasets:[{type:'line',label:'Gross margin',data:R.map(r=>+(r.gp/r.rev*100).toFixed(1)),borderColor:PAL[3],backgroundColor:PAL[3],yAxisID:'y2',order:0},{type:'line',label:'Operating margin',data:R.map(r=>+(r.op/r.rev*100).toFixed(1)),borderColor:PAL[4],backgroundColor:PAL[4],yAxisID:'y2',order:0},{label:'Revenue ($bn)',data:R.map(r=>+(r.rev/1e9).toFixed(1)),backgroundColor:PAL[0],order:1,barPercentage:.6}]},options:{scales:{y:{beginAtZero:true,ticks:{callback:v=>'$'+v+'bn'}},y2:{position:'right',min:0,max:100,grid:{display:false},ticks:{callback:v=>v+'%'}}}}});
+ mk('cRM',{type:'bar',data:{labels:R.map(r=>fq(r.end)),datasets:[{type:'line',label:'Gross margin',data:R.map(r=>+(r.gp/r.rev*100).toFixed(1)),borderColor:PAL[3],backgroundColor:PAL[3],yAxisID:'y2',order:0},{type:'line',label:'Operating margin',data:R.map(r=>+(r.op/r.rev*100).toFixed(1)),borderColor:PAL[4],backgroundColor:PAL[4],yAxisID:'y2',order:0},{label:'Revenue ($bn)',data:R.map(r=>+(r.rev/1e9).toFixed(1)),backgroundColor:PAL[0],order:1,barPercentage:.6}]},options:{scales:{y:{beginAtZero:true,ticks:{callback:v=>'$'+v+'bn'}},y2:{position:'right',min:0,max:100,grid:{display:false},ticks:{callback:v=>v+'%'}}}}});
  mk('cRel',{type:'line',data:{datasets:ds},options:{parsing:true,scales:{x:{type:'category',labels:s.NVDA.map(p=>p[0]),ticks:{maxTicksLimit:7}}}}})}
 
 function S_fin(){const q=R.map(r=>fq(r.end));const row=(lbl,k,f=B$,cls='')=>`<tr class="${cls}"><td>${lbl}</td>${R.map(r=>`<td>${f(typeof k==='function'?k(r):r[k])}</td>`).join('')}</tr>`;
@@ -124,16 +159,33 @@ function C_guide(){const act=Object.fromEntries(R.map(r=>[fq(r.end),r]));const g
  C_street();mk('cBeat',{type:'bar',data:{labels:g.map(x=>x.q),datasets:[{label:'Actual ÷ guide − 1',data:g.map(x=>+((act[x.q].rev/x.rev-1)*100).toFixed(1)),backgroundColor:PAL[0]}]},options:{plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>v+'%'}}}}})}
 
 
-function S_jensen(){const X=window.XFEED,F=D.fc,huang=B.directors.find(p=>p.role==='ceo');const st={met:['Met','pos'],behind:['Behind','neg'],pending:['Pending','']};
+function S_jensen(){const X=window.XFEED,F=D.fc,J=D.jensen||null,huang=B.directors.find(p=>p.role==='ceo');const st={met:['Met','pos'],behind:['Behind','neg'],pending:['Pending','']};
  const cnt=k=>F.filter(f=>f.status===k).length;
+ const fd=x=>new Date(x+'T00:00:00Z').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'});
  const posts=X.posts.map(p=>`<div style="padding:12px 0;border-bottom:1px solid var(--line)"><div style="font-size:12px;color:var(--mut)">${p.sgt} SGT · ${p.kind==='reply'?'reply':'post'} · ${N(p.views)} views · ${link(p.url,'open on X')}</div><div style="white-space:pre-line;margin-top:4px">${p.text.replace(/</g,'&lt;')}</div></div>`).join('');
  const rows=F.map(f=>`<tr><td>${f.said}</td><td class="l" style="white-space:normal;min-width:260px">“${f.quote}” <span style="color:var(--mut)">— ${link(f.url,f.where)}</span></td><td class="${st[f.status][1]}" style="font-weight:600">${st[f.status][0]}</td><td class="l" style="white-space:normal;min-width:240px;color:var(--mut)">${f.evid_url?link(f.evid_url,f.evid):f.evid}</td></tr>`);
+ const forecast=`<div class="grid">${box('c12','Forecast vs actual'+` <small>${cnt('met')} met · ${cnt('behind')} behind · ${cnt('pending')} pending</small>`,tbl(['Said',['Target (quoted)'],'Status',['Evidence']],rows),['Targets are keynote and earnings statements by Jensen Huang or NVIDIA management, quoted in English with a dated source. "Met" needs a later NVIDIA filing or release confirming it; "pending" means the date has not arrived or results are not yet reported. Two GTC 2025 rows quote press coverage because the keynote itself is video.'])}</div>
+ <div class="grid">${box('c12','Posts on X'+` <small>@JensenHuang · ${X.posts.length} ${'posts'}</small>`,posts,[`Fetched ${X.fetched} via the X API (account's full timeline since its first post on 24 Jul 2026). @JensenHuang is Jensen's verified account (blue check, NVIDIA affiliation badge). Text is verbatim.`])}</div>`;
+ if(!J)return `<h2>${'Jensen Huang'}</h2>`+forecast;
+ const sh=huang?huang.shares:J.ownership.shares,val=sh*px,PL=J.plan,PX=J.proxy;
+ const CODE={S:'Open-market sale',P:'Open-market purchase',G:'Gift',F:'Shares withheld for tax',A:'Award / grant',M:'Option exercise / RSU conversion',J:'Other (e.g. trust transfer)',C:'Conversion'};
+ const tx=(window.NVDA_TX?window.NVDA_TX.tx:[]).filter(t=>/Huang Jen/i.test(t.who));
+ const txt=tx.length?tbl(['Date',['Type'],'Shares','Price','10b5-1','Form 4'],tx.map(t=>`<tr><td>${t.d}</td><td class="l">${CODE[t.c]||t.c}${t.ad==='A'?' (acquired)':''}${t.di==='I'?' · indirect':''}</td><td>${N(t.sh)}</td><td>${t.p?'$'+t.p.toFixed(2):'—'}</td><td>${t.plan?'Yes':'No'}</td><td>${link(t.url,'filing')}</td></tr>`)):'<p>No Form 4 transactions in the last 12 months.</p>';
+ const $m=v=>'$'+(v/1e6).toFixed(1)+'m';
+ const comp=tbl(['Fiscal year','Salary','Stock awards','Cash incentive','All other','Total'],J.comp.rows.map(r=>`<tr class="${r.fy==='FY26'?'tot':''}"><td>${r.fy}</td><td>${$m(r.salary)}</td><td>${$m(r.stock)}</td><td>${$m(r.cash_incentive)}</td><td>${$m(r.other)}</td><td>${$m(r.total)}</td></tr>`));
+ const probe=[...J.probe].sort((a,b)=>a.d<b.d?1:-1).map(x=>`<li><b>${fd(x.d)}</b> · ${x.t} — ${link(x.url,x.src)}</li>`).join('');
+ const app=J.appearances.map(a=>`<li><b>${fd(a.d)}</b> · <i>${a.where}</i> — ${a.t} ${link(a.url,'video')}</li>`).join('');
  return `<h2>${'Jensen Huang'}</h2><div class="grid">
- ${card('c4','Role','Co-founder, President & CEO','Director since 1993')}
- ${card('c4','Holdings & Form 4 trades',`<a href="#ownership" style="font-size:20px">${'See Ownership · Insiders →'}</a>`,'Stake, value and every 12-month transaction are shown there (filter by "Huang Jen Hsun").')}
- ${card('c4','Targets scored',`${cnt('met')} / ${cnt('behind')} / ${cnt('pending')}`,'met / behind / pending')}</div>
- <div class="grid">${box('c12','Forecast vs actual',tbl(['Said',['Target (quoted)'],'Status',['Evidence']],rows),['Targets are keynote and earnings statements by Jensen Huang or NVIDIA management, quoted in English with a dated source. "Met" needs a later NVIDIA filing or release confirming it; "pending" means the date has not arrived or results are not yet reported. Two GTC 2025 rows quote press coverage because the keynote itself is video.'])}</div>
- <div class="grid">${box('c12','Posts on X'+` <small>@JensenHuang · ${X.posts.length} ${'posts'}</small>`,posts,[`Fetched ${X.fetched} via the X API (account's full timeline since its first post on 24 Jul 2026). @JensenHuang is Jensen's verified account (blue check, NVIDIA affiliation badge). Text is verbatim.`])}</div>`}
+ ${card('c3','Role',`<span style="font-size:18px">Founder, President & CEO</span>`,`Since 1993 · age ${J.profile.age} (${link(PX.url,'2026 proxy')})`)}
+ ${card('c3','NVDA shares (beneficial)',(sh/1e6).toFixed(1)+'m',`≈ ${T$(val)} at $${px.toFixed(2)} · ${P(sh/D.so,2)} of shares out · ${huang?'after Form 4 of '+fd(huang.date):'proxy, '+fd(J.ownership.asof)}`)}
+ ${card('c3','FY26 total compensation',$m(J.comp.rows[0].total),`Proxy Summary Compensation Table; FY25 ${$m(J.comp.rows[1].total)}`)}
+ ${card('c3','10b5-1 selling plan','Completed',`${N(PL.sold_shares)} shares sold ${fd(PL.first_sale)} – ${fd(PL.last_sale)} (≈ ${B$(PL.sold_value,2)}); no new plan disclosed`)}</div>
+ <div class="grid as">${box('c6','Profile & background',`<ul class="tk">${J.profile.bio.map(b=>`<li>${b}</li>`).join('')}</ul>`,[`Source: ${link(PX.url,PX.label)} (filed ${fd(PX.filed)}), director biography and related-person transactions. English original paraphrased; as of ${fd(PX.filed)}.`])}
+ ${box('c6','Compensation (proxy)',comp,[J.comp.note,`Source: ${link(PX.url,PX.label)}.`])}</div>
+ <div class="grid as">${box('c6','Holdings & selling plan',`<ul class="tk"><li><b>${N(sh)}</b> shares beneficially owned ${huang?`after his latest Form 4 (${link(huang.url,fd(huang.date))})`:''}; proxy table: ${N(J.ownership.shares)} (${J.ownership.pct}%) as of ${fd(J.ownership.asof)}.</li><li>${J.ownership.note}</li><li><b>Rule 10b5-1 plan:</b> adopted ${fd(PL.adopted)} to sell up to ${N(PL.shares)} shares by ${fd(PL.expires)} (${link(PL.src,PL.src_label)}). Form 4s show all ${N(PL.sold_shares)} sold between ${link(PL.first_url,fd(PL.first_sale))} and ${link(PL.last_url,fd(PL.last_sale))}, about ${B$(PL.sold_value,2)} in total (sum of shares × reported weighted-average prices).</li><li>${PL.since}</li></ul>`,['Holdings value uses the build-time last close; shares include indirect holdings through trusts and partnerships as reported.'])}
+ ${box('c6','Form 4 activity, last 12 months'+` <small>${tx.length} lines</small>`,txt,[`From SEC Form 4 filings (window from ${window.NVDA_TX?window.NVDA_TX.from:'—'}); rebuilt with every scan. Gifts and tax withholding are not open-market sales. Full detail: Insiders table below.`])}</div>
+ <div class="grid">${box('c12','Board investigation & Alice Huang allegations'+` <small>as reported · newest first · ${J.probe.length} items</small>`,`<ul class="tk">${probe}</ul>`,['Neutral summary of what each named outlet or party reported or stated; allegations are unproven and inclusion here is not a finding of wrongdoing. The list is extended automatically when the daily scan logs a new related item.'])}</div>
+ <div class="grid">${box('c12','Recent appearances & interviews',`<ul class="tk">${app}</ul>`,['Takeaways from each video\'s captions or transcript (see Media & sources · YouTube). Dates are publication dates.'])}</div>`+forecast}
 function C_jensen(){}
 
 function S_ins(){const so=D.so;const com=c=>Object.entries(c).map(([k,v])=>{const n={a:'Audit',c:'Compensation',n:'Nominating & Governance'}[k];return v?`<span class="chair">${n} (${'chair'})</span>`:n}).join(', ')||'—';
@@ -225,11 +277,11 @@ function S_holders(){const L=D.lawmakers;if(!L)return `<h2>13F Holders</h2><p>No
  <div class="grid">${box('c12','Every disclosed NVDA trade',tx,['Includes spouse/dependent-owned accounts as filed. Not investment advice.'])}</div>`}
 
 const REDIR={cash:'fin',val:'fin',seg:'business',comp:'business',ins:'ownership',holders:'ownership',jensen:'ownership',video:'media',src:'media'};
-const S={overview:S_overview,fin:()=>S_fin()+S_cash()+S_val(),business:()=>S_seg()+S_comp(),guide:S_guide,ownership:()=>S_ins()+S_holders()+S_jensen(),media:()=>S_video()+S_src()},CH={overview:C_overview,fin:()=>{C_fin();C_segop();C_cash();C_val()},business:()=>{C_seg();C_comp()},guide:C_guide,ownership:()=>{C_ins();C_jensen()},media:()=>{}};
-let cur='';function render(){let h=(location.hash||'#overview').slice(1);if(REDIR[h]){history.replaceState(null,'','#'+REDIR[h]);h=REDIR[h]}cur=S[h]?h:'overview';charts.splice(0).forEach(c=>c.destroy());
+const S={overview:S_overview,fin:()=>S_fin()+S_cash()+S_val(),business:()=>S_seg()+S_comp(),guide:S_guide,ownership:()=>S_jensen()+S_ins()+S_holders(),media:()=>S_video()+S_src()},CH={overview:C_overview,fin:()=>{C_fin();C_segop();C_cash();C_val()},business:()=>{C_seg();C_comp()},guide:C_guide,ownership:()=>{C_ins();C_jensen()},media:()=>{}};
+let cur='';function render(){closeChart();let h=(location.hash||'#overview').slice(1);if(REDIR[h]){history.replaceState(null,'','#'+REDIR[h]);h=REDIR[h]}cur=S[h]?h:'overview';charts.splice(0).forEach(c=>c.destroy());
  document.getElementById('nav').innerHTML=TABS.map(t=>`<a href="#${t[0]}" class="${t[0]===cur?'on':''}">${t[1]}</a>`).join('');
  document.getElementById('h1').textContent='NVIDIA (NVDA) Dashboard';document.getElementById('sub').textContent='NASDAQ: NVDA · AI computing · figures from SEC filings unless noted';
- document.getElementById('main').innerHTML=`<section class="on">${S[cur]()}</section>`;(CH[cur]||(()=>{}))();
+ document.getElementById('main').innerHTML=KEYS()+`<section class="on">${S[cur]()}</section>`;(CH[cur]||(()=>{}))();setTimeout(liveQuote,0);
  document.getElementById('foot').textContent='© 2026 Hugo Tian. All rights reserved.';
  document.title='NVIDIA (NVDA) Dashboard · © 2026 Hugo Tian';const a=document.querySelector('nav a.on');a&&a.scrollIntoView({block:'nearest',inline:'center'})}
 document.getElementById('theme').onclick=()=>{const c=doc.dataset.theme||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');doc.dataset.theme=c==='dark'?'light':'dark';try{localStorage.setItem('nvda-theme',doc.dataset.theme)}catch(e){}render()};
